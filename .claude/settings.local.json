@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create tauri-app@latest:*)",
+      "Bash(npm install:*)"
+    ]
+  }
+}

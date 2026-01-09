@@ -1,0 +1,217 @@
+// ============================================
+// MCP Skills Hub - Theme System (New Design)
+// ============================================
+
+:root {
+  // 间距
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  // 圆角
+  --radius: 0.5rem;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-full: 9999px;
+
+  // 字体
+  --font-sans: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+
+  // 动效
+  --duration-fast: 100ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+
+  // 布局
+  --sidebar-width: 256px;
+  --sidebar-collapsed-width: 64px;
+}
+
+// ============================================
+// 亮色主题 (Light Theme)
+// ============================================
+[data-theme="light"] {
+  color-scheme: light;
+
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.15 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0 0);
+  --primary: oklch(0.55 0.22 270);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.94 0 0);
+  --secondary-foreground: oklch(0.15 0 0);
+  --muted: oklch(0.95 0 0);
+  --muted-foreground: oklch(0.45 0 0);
+  --accent: oklch(0.96 0 0);
+  --accent-foreground: oklch(0.15 0 0);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.9 0 0);
+  --input: oklch(0.95 0 0);
+  --ring: oklch(0.55 0.22 270);
+  --success: oklch(0.55 0.18 150);
+  --warning: oklch(0.65 0.18 80);
+  --info: oklch(0.55 0.18 220);
+
+  // Sidebar
+  --sidebar: oklch(0.97 0 0);
+  --sidebar-foreground: oklch(0.15 0 0);
+  --sidebar-primary: oklch(0.55 0.22 270);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.92 0 0);
+  --sidebar-accent-foreground: oklch(0.15 0 0);
+  --sidebar-border: oklch(0.88 0 0);
+  --sidebar-ring: oklch(0.55 0.22 270);
+
+  // 阴影
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+
+  // 滚动条
+  --scrollbar-track: oklch(0.95 0 0);
+  --scrollbar-thumb: oklch(0.85 0 0);
+  --scrollbar-thumb-hover: oklch(0.75 0 0);
+
+  // AI 工具状态 (Light Mode)
+  --tool-pending: #64748B;
+  --tool-approved: #2563EB;
+  --tool-running: #2563EB;
+  --tool-success: #16A34A;
+  --tool-error: #DC2626;
+  --tool-rejected: #64748B;
+
+  // Diff 颜色 (Light Mode)
+  --diff-add-bg: rgba(34, 197, 94, 0.12);
+  --diff-add-text: #16A34A;
+  --diff-add-border: #16A34A;
+  --diff-remove-bg: rgba(239, 68, 68, 0.12);
+  --diff-remove-text: #DC2626;
+  --diff-remove-border: #DC2626;
+  --diff-modify-bg: rgba(245, 158, 11, 0.12);
+  --diff-modify-text: #D97706;
+
+  // AI 消息 (Light Mode)
+  --msg-user-bg: oklch(0.55 0.22 270);
+  --msg-assistant-bg: oklch(1 0 0);
+
+  // AI 面板 (Light Mode)
+  --ai-panel-bg: oklch(0.98 0 0);
+  --ai-panel-border: oklch(0.9 0 0);
+
+  // 代码块 (Light Mode)
+  --code-bg: #f6f8fa;
+  --code-foreground: #24292f;
+  --code-color: #cf222e;
+}
+
+// ============================================
+// 暗色主题 (Dark Theme) - 默认
+// ============================================
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: oklch(0.12 0 0);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.16 0 0);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.14 0 0);
+  --popover-foreground: oklch(0.95 0 0);
+  --primary: oklch(0.65 0.22 270);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.22 0 0);
+  --secondary-foreground: oklch(0.95 0 0);
+  --muted: oklch(0.22 0 0);
+  --muted-foreground: oklch(0.55 0 0);
+  --accent: oklch(0.26 0 0);
+  --accent-foreground: oklch(0.95 0 0);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.24 0 0);
+  --input: oklch(0.24 0 0);
+  --ring: oklch(0.65 0.22 270);
+  --success: oklch(0.65 0.18 150);
+  --warning: oklch(0.75 0.18 80);
+  --info: oklch(0.65 0.18 220);
+
+  // Sidebar
+  --sidebar: oklch(0.14 0 0);
+  --sidebar-foreground: oklch(0.88 0 0);
+  --sidebar-primary: oklch(0.65 0.22 270);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.22 0 0);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  --sidebar-border: oklch(0.2 0 0);
+  --sidebar-ring: oklch(0.65 0.22 270);
+
+  // 阴影
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5), 0 4px 6px rgba(0, 0, 0, 0.4);
+
+  // 滚动条
+  --scrollbar-track: oklch(0.14 0 0);
+  --scrollbar-thumb: oklch(0.26 0 0);
+  --scrollbar-thumb-hover: oklch(0.32 0 0);
+
+  // AI 工具状态 (Dark Mode)
+  --tool-pending: #64748B;
+  --tool-approved: #3B82F6;
+  --tool-running: #3B82F6;
+  --tool-success: #22C55E;
+  --tool-error: #EF4444;
+  --tool-rejected: #64748B;
+
+  // Diff 颜色 (Dark Mode)
+  --diff-add-bg: rgba(34, 197, 94, 0.15);
+  --diff-add-text: #22C55E;
+  --diff-add-border: #22C55E;
+  --diff-remove-bg: rgba(239, 68, 68, 0.15);
+  --diff-remove-text: #EF4444;
+  --diff-remove-border: #EF4444;
+  --diff-modify-bg: rgba(245, 158, 11, 0.15);
+  --diff-modify-text: #F59E0B;
+
+  // AI 消息 (Dark Mode)
+  --msg-user-bg: oklch(0.65 0.22 270);
+  --msg-assistant-bg: oklch(0.16 0 0);
+
+  // AI 面板 (Dark Mode)
+  --ai-panel-bg: oklch(0.14 0 0);
+  --ai-panel-border: oklch(0.24 0 0);
+
+  // 代码块 (Dark Mode)
+  --code-bg: #1e1e2e;
+  --code-foreground: #cdd6f4;
+  --code-color: #f5c2e7;
+}
+
+// ============================================
+// 主题切换过渡动画
+// ============================================
+html {
+  transition:
+    background-color var(--duration-slow) var(--ease-default),
+    border-color var(--duration-slow) var(--ease-default),
+    color var(--duration-normal) var(--ease-default);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    transition: none;
+  }
+}
