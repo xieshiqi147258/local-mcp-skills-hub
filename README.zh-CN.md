@@ -2,8 +2,6 @@
 
 本地优先的技能管理应用，集成 AI 助手。在一个地方管理你的 MCP（模型上下文协议）技能、提示词和工作流。
 
-![技能视图](screenshots/skills-view.png)
-
 ## 功能特性
 
 - 📁 **文件浏览器** - 浏览和管理技能文件（Markdown、JSON、YAML）
@@ -12,17 +10,6 @@
 - 🔧 **MCP 服务器管理** - 配置和管理 MCP 服务器
 - 🌙 **深色/浅色主题** - 自动主题切换
 - 🌐 **国际化** - 支持中英文
-
-## 截图
-
-### 技能管理
-![技能管理](screenshots/skills-view.png)
-
-### AI 助手
-![AI 助手](screenshots/ai-assistant.png)
-
-### MCP 服务器配置
-![MCP 配置](screenshots/mcp-view.png)
 
 ## 快速开始
 
@@ -58,7 +45,6 @@ npm run dev
 - **前端**: Vue 3 + TypeScript + Vite
 - **后端**: Node.js + Express
 - **UI**: 自定义组件 + SCSS
-- **桌面端**: Tauri（可选）
 
 ## 许可证
 

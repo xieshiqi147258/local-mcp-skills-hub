@@ -17,8 +17,7 @@ dist-ssr
 *.local
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
+.vscode/
 .idea
 .DS_Store
 *.suo
@@ -26,24 +25,27 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-docs/*
 
-# Kiro/Claude config (local)
+# Kiro/Claude config
 .claude/
-.kiro/specs/
-.kiro/steering/
-.vscode
+.kiro/
 
-# Shared resources (design files)
+# Shared resources
 .shared/
+
+# Design docs (keep only essential)
+docs/
 
 # Temp files
 *.tmp
 *.temp
 diagnose-provider.html
 
-# Tauri build
-src-tauri/target/
+# Tauri (desktop app - not needed for web version)
+src-tauri/
 
-# Test files
+# Test
 coverage/
+
+# Screenshots (add manually when needed)
+screenshots/

@@ -2,8 +2,6 @@
 
 A local-first skill management application with AI assistant integration. Manage your MCP (Model Context Protocol) skills, prompts, and workflows in one place.
 
-![Skills View](screenshots/skills-view.png)
-
 ## Features
 
 - 📁 **File Browser** - Browse and manage skill files (Markdown, JSON, YAML)
@@ -12,17 +10,6 @@ A local-first skill management application with AI assistant integration. Manage
 - 🔧 **MCP Server Management** - Configure and manage MCP servers
 - 🌙 **Dark/Light Theme** - Automatic theme switching
 - 🌐 **i18n Support** - English and Chinese
-
-## Screenshots
-
-### Skills Management
-![Skills Management](screenshots/skills-view.png)
-
-### AI Assistant
-![AI Assistant](screenshots/ai-assistant.png)
-
-### MCP Server Config
-![MCP Config](screenshots/mcp-view.png)
 
 ## Quick Start
 
@@ -58,7 +45,6 @@ Set your skills workspace path in Settings to start managing files.
 - **Frontend**: Vue 3 + TypeScript + Vite
 - **Backend**: Node.js + Express
 - **UI**: Custom components with SCSS
-- **Desktop**: Tauri (optional)
 
 ## License
 
