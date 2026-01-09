@@ -8,7 +8,21 @@
     <!-- User Message -->
     <template v-if="message.role === 'user'">
       <div class="user-message">
-        <div class="user-message__content">{{ message.content }}</div>
+        <!-- File Reference Card -->
+        <div v-if="message.fileReference" class="file-reference-card">
+          <div class="file-reference-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+          </div>
+          <div class="file-reference-info">
+            <span class="file-reference-action">{{ getActionLabel(message.fileReference.action) }}</span>
+            <span class="file-reference-name">{{ message.fileReference.fileName }}</span>
+          </div>
+        </div>
+        <!-- Regular text message -->
+        <div v-else class="user-message__content" v-html="renderMarkdown(message.content)"></div>
         <button class="user-message__copy" @click="$emit('copy-text', message)" :title="t('aiMessageActions.copyText')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="9" y="9" width="13" height="13" rx="2"/>
@@ -97,6 +111,17 @@ const toast = useToast();
 
 const showContextMenu = ref(false);
 const contextMenuPosition = ref({ x: 0, y: 0 });
+
+// Get action label for file reference
+function getActionLabel(action: string): string {
+  const labels: Record<string, string> = {
+    explain: t('aiContext.actions.explain'),
+    optimize: t('aiContext.actions.optimize'),
+    addComments: t('aiContext.actions.addComments'),
+    analyze: t('aiContext.actions.analyze') || '分析'
+  };
+  return labels[action] || action;
+}
 
 // Content segment type
 interface ContentSegment {
@@ -219,8 +244,59 @@ onUnmounted(() => {
     border-radius: 18px 18px 4px 18px;
     font-size: 14px;
     line-height: 1.5;
-    white-space: pre-wrap;
     word-break: break-word;
+    
+    // Markdown styles for user messages
+    :deep(p) {
+      margin: 0 0 8px 0;
+      &:last-child { margin-bottom: 0; }
+    }
+    
+    :deep(ul), :deep(ol) {
+      margin: 8px 0;
+      padding-left: 20px;
+    }
+    
+    :deep(li) {
+      margin: 4px 0;
+    }
+    
+    :deep(code) {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9em;
+      padding: 2px 6px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+      color: inherit;
+    }
+    
+    :deep(pre) {
+      margin: 12px 0;
+      padding: 12px 16px;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 8px;
+      overflow-x: auto;
+      
+      code {
+        padding: 0;
+        background: transparent;
+        color: inherit;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+    }
+    
+    :deep(blockquote) {
+      margin: 12px 0;
+      padding: 8px 16px;
+      border-left: 3px solid rgba(255, 255, 255, 0.5);
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 0 8px 8px 0;
+    }
+    
+    :deep(strong) {
+      font-weight: 600;
+    }
   }
   
   &__copy {
@@ -251,6 +327,56 @@ onUnmounted(() => {
   
   &:hover .user-message__copy {
     opacity: 1;
+  }
+}
+
+// File reference card style
+.file-reference-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: 12px;
+  min-width: 200px;
+  
+  .file-reference-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    
+    svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+    }
+  }
+  
+  .file-reference-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  
+  .file-reference-action {
+    font-size: 12px;
+    opacity: 0.8;
+    font-weight: 500;
+  }
+  
+  .file-reference-name {
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 

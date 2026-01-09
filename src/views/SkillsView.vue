@@ -211,7 +211,9 @@
       :is-open="aiStore.isPanelOpen"
       :selected-text="selectedTextForAi"
       :current-skill-name="skillsStore.selectedSkill?.name"
-      :initial-message="pendingAiMessage"
+      :initial-message="pendingAiMessage?.message"
+      :message-trigger="pendingAiMessage?.timestamp"
+      :file-reference="pendingAiMessage?.fileReference"
       @toggle="toggleAiPanel"
       @close="closeAiPanel"
       @message-sent="clearPendingAiMessage"
@@ -380,7 +382,7 @@ const editorContent = ref("");
 const expandedFolders = ref<Set<string>>(new Set());
 const hasChanges = ref(false);
 const selectedTextForAi = ref("");
-const pendingAiMessage = ref<string | null>(null);
+const pendingAiMessage = ref<{ message: string; timestamp: number; fileReference?: { fileName: string; filePath?: string; action: string; content: string } } | null>(null);
 
 // Mobile detection for overlay mode
 const windowWidth = ref(window.innerWidth);
@@ -498,7 +500,6 @@ const handleDocumentClick = (event: MouseEvent) => {
 };
 
 // Handle "Send to AI" from text selection menu (Requirement 6.3, 6.4, 6.5)
-// This will be fully implemented in task 7.3
 const handleSendSelectedTextToAi = (text: string) => {
   // Open AI panel if closed (Requirement 6.3)
   if (!aiStore.isPanelOpen) {
@@ -509,6 +510,12 @@ const handleSendSelectedTextToAi = (text: string) => {
   aiStore.setSelectedText(text);
   // Hide the selection menu
   hideTextSelectionMenu();
+  
+  // Send the selected text to AI with a prompt
+  pendingAiMessage.value = {
+    message: `请帮我分析以下代码:\n\n\`\`\`\n${text}\n\`\`\``,
+    timestamp: Date.now()
+  };
 };
 
 // Handle AI file actions (explain, optimize, add comments)
@@ -516,14 +523,24 @@ const handleAiFileAction = (action: string) => {
   if (!skillsStore.selectedSkill) return;
   
   const fileName = skillsStore.selectedSkill.name;
-  const actionPrompts: Record<string, string> = {
-    explain: `请解释这个文件的内容:\n\n文件名: ${fileName}\n\n\`\`\`\n${editorContent.value}\n\`\`\``,
-    optimize: `请优化这个文件的代码:\n\n文件名: ${fileName}\n\n\`\`\`\n${editorContent.value}\n\`\`\``,
-    addComments: `请为这个文件添加详细的注释:\n\n文件名: ${fileName}\n\n\`\`\`\n${editorContent.value}\n\`\`\``
+  const actionLabels: Record<string, string> = {
+    explain: t('aiContext.actions.explain'),
+    optimize: t('aiContext.actions.optimize'),
+    addComments: t('aiContext.actions.addComments')
   };
   
-  const prompt = actionPrompts[action] || `${action}: ${fileName}`;
-  pendingAiMessage.value = prompt;
+  // Send file reference with action label as display message
+  // The actual file content will be sent to AI but displayed as a card
+  pendingAiMessage.value = {
+    message: `${actionLabels[action] || action}: ${fileName}`,
+    timestamp: Date.now(),
+    fileReference: {
+      fileName,
+      filePath: skillsStore.selectedSkill.path,
+      action: action as 'explain' | 'optimize' | 'addComments',
+      content: editorContent.value
+    }
+  };
 };
 
 // Clear pending AI message after it's sent

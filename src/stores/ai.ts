@@ -108,6 +108,14 @@ export interface ContentSegment {
   toolCallId?: string; // Reference to toolCall by id
 }
 
+// File reference for AI file actions (explain, optimize, etc.)
+export interface FileReference {
+  fileName: string;
+  filePath?: string;
+  action: 'explain' | 'optimize' | 'addComments' | 'analyze';
+  content: string; // The actual file content (sent to AI but not displayed in full)
+}
+
 // Extended Message interface (Requirement 12.1)
 export interface Message {
   id: string;
@@ -123,6 +131,8 @@ export interface Message {
   isStreaming?: boolean;
   // Ordered segments for Kiro-style interleaved display
   segments?: ContentSegment[];
+  // File reference for file action messages
+  fileReference?: FileReference;
 }
 
 // Conversation interface (Requirement 12.1)

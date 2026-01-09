@@ -7,9 +7,15 @@
           <AiConversationList @select="handleSelectConversation" @new="handleNewConversation" @delete="handleDeleteConversation" @rename="handleRenameConversation" />
         </div>
       </Transition>
+      
+      <!-- Fixed loading indicator at top -->
+      <div v-if="isLoading" class="loading-indicator-fixed">
+        <AiTypingIndicator :show-stop-button="true" @stop="handleStopGeneration" />
+      </div>
+      
       <div class="panel-body">
         <AiEmptyState v-if="aiStore.messages.length === 0 && !isLoading" @create-skill="handleCreateSkill" @browse-files="handleBrowseFiles" />
-        <AiMessageList v-else ref="messageListRef" :messages="aiStore.messages" :is-loading="isLoading" @copy-text="handleCopyText" @copy-code="handleCopyCode" @regenerate="handleRegenerate" @edit="handleEditMessage" @delete="handleDeleteMessage" @stop-generation="handleStopGeneration" @approve-diff="handleApproveDiff" @reject-diff="handleRejectDiff" />
+        <AiMessageList v-else ref="messageListRef" :messages="aiStore.messages" :is-loading="false" @copy-text="handleCopyText" @copy-code="handleCopyCode" @regenerate="handleRegenerate" @edit="handleEditMessage" @delete="handleDeleteMessage" @stop-generation="handleStopGeneration" @approve-diff="handleApproveDiff" @reject-diff="handleRejectDiff" />
       </div>
       <AiInputArea ref="inputAreaRef" v-model="inputText" :placeholder="inputPlaceholder" :is-loading="isLoading" :disabled="!hasWorkspacePath" @send="handleSendMessage" @edit-last="handleEditLastMessage" @clear="handleClearInput" />
     </aside>
@@ -37,20 +43,32 @@ import AiConversationList from './AiConversationList.vue';
 import AiEmptyState from './AiEmptyState.vue';
 import AiMessageList from './AiMessageList.vue';
 import AiInputArea from './AiInputArea.vue';
+import AiTypingIndicator from './AiTypingIndicator.vue';
 
 // Props
+interface FileReference {
+  fileName: string;
+  filePath?: string;
+  action: string;
+  content: string;
+}
+
 interface Props {
   isOpen: boolean;
   selectedText?: string | null;
   currentSkillName?: string;
   initialMessage?: string | null;
+  messageTrigger?: number | null;
+  fileReference?: FileReference | null;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   isOpen: false,
   selectedText: null,
   currentSkillName: undefined,
-  initialMessage: null
+  initialMessage: null,
+  messageTrigger: null,
+  fileReference: null
 });
 
 // Emits
@@ -572,16 +590,203 @@ watch(() => props.isOpen, (isOpen) => {
   }
 });
 
-// Watch for initial message to auto-send
-watch(() => props.initialMessage, (message) => {
-  if (message && message.trim() && props.isOpen) {
-    inputText.value = message;
-    nextTick(() => {
-      handleSendMessage();
-      emit('message-sent');
-    });
+// Watch for message trigger to auto-send (using timestamp ensures each click triggers)
+watch(() => props.messageTrigger, (trigger) => {
+  if (trigger && props.initialMessage && props.initialMessage.trim()) {
+    // Ensure panel is open
+    if (!props.isOpen) {
+      return;
+    }
+    
+    // Check if this is a file reference action
+    if (props.fileReference) {
+      // Send file reference message with card display
+      handleSendFileReferenceMessage(props.fileReference);
+    } else {
+      // Regular text message
+      inputText.value = props.initialMessage;
+      nextTick(() => {
+        handleSendMessage();
+        emit('message-sent');
+      });
+    }
   }
 });
+
+// Handle file reference message (explain, optimize, add comments)
+async function handleSendFileReferenceMessage(fileRef: FileReference) {
+  if (isLoading.value) return;
+  
+  // Ensure we have a conversation
+  if (!aiStore.currentConversationId) {
+    aiStore.createConversation();
+  }
+  
+  // Build the action prompt for AI (includes full content)
+  const actionPrompts: Record<string, string> = {
+    explain: `请解释这个文件的内容:\n\n文件名: ${fileRef.fileName}\n\n\`\`\`\n${fileRef.content}\n\`\`\``,
+    optimize: `请优化这个文件的代码:\n\n文件名: ${fileRef.fileName}\n\n\`\`\`\n${fileRef.content}\n\`\`\``,
+    addComments: `请为这个文件添加详细的注释:\n\n文件名: ${fileRef.fileName}\n\n\`\`\`\n${fileRef.content}\n\`\`\``
+  };
+  
+  const fullPrompt = actionPrompts[fileRef.action] || `${fileRef.action}: ${fileRef.fileName}\n\n\`\`\`\n${fileRef.content}\n\`\`\``;
+  
+  // Add user message with file reference (displays as card, but sends full content to AI)
+  aiStore.addMessage({
+    role: 'user',
+    content: fullPrompt, // Full content for AI
+    fileReference: {
+      fileName: fileRef.fileName,
+      filePath: fileRef.filePath,
+      action: fileRef.action as 'explain' | 'optimize' | 'addComments' | 'analyze',
+      content: fileRef.content
+    }
+  });
+  
+  emit('message-sent');
+  isLoading.value = true;
+  
+  await nextTick();
+  scrollToBottom();
+  
+  try {
+    // Build system prompt with workspace context
+    let systemPrompt = buildSystemPrompt();
+    
+    // Build message history for API
+    const chatMessages: ChatMessage[] = aiStore.messages
+      .slice(-20)
+      .map(m => ({
+        role: m.role,
+        content: m.content
+      }));
+    
+    // Load AI config
+    const config = loadAiConfig();
+    if (!config.apiKey && config.provider !== 'ollama') {
+      throw new Error(t('ai.apiKeyRequired'));
+    }
+    
+    // Create assistant message placeholder for streaming
+    const assistantMessage = aiStore.addMessage({
+      role: 'assistant',
+      content: '',
+      isStreaming: true,
+      toolCalls: [],
+      segments: []
+    });
+    currentStreamingMessageId.value = assistantMessage.id;
+    
+    let currentTextSegmentIndex = -1;
+    
+    streamController.value = chatStreamWithCallbacks(
+      chatMessages,
+      { ...config, systemPrompt },
+      {
+        onText: (content: string) => {
+          const message = aiStore.messages.find(m => m.id === assistantMessage.id);
+          if (message) {
+            message.content += content;
+            if (!message.segments) message.segments = [];
+            
+            if (currentTextSegmentIndex === -1 || 
+                message.segments.length === 0 || 
+                message.segments[message.segments.length - 1].type !== 'text') {
+              message.segments.push({ type: 'text', text: content });
+              currentTextSegmentIndex = message.segments.length - 1;
+            } else {
+              const lastSegment = message.segments[currentTextSegmentIndex];
+              if (lastSegment && lastSegment.type === 'text') {
+                lastSegment.text = (lastSegment.text || '') + content;
+              }
+            }
+            scrollToBottom();
+          }
+        },
+        onToolCall: (toolCall) => {
+          const message = aiStore.messages.find(m => m.id === assistantMessage.id);
+          if (message) {
+            if (!message.toolCalls) message.toolCalls = [];
+            if (!message.segments) message.segments = [];
+            
+            const existingToolCall = message.toolCalls.find(tc => tc.id === toolCall.id);
+            if (existingToolCall) {
+              existingToolCall.status = (toolCall.status as ToolCallStatus) || existingToolCall.status;
+              if (toolCall.params && Object.keys(toolCall.params).length > 0) {
+                existingToolCall.params = toolCall.params;
+              }
+            } else {
+              message.toolCalls.push({
+                id: toolCall.id,
+                name: toolCall.name,
+                params: toolCall.params,
+                status: (toolCall.status as ToolCallStatus) || 'pending'
+              });
+              message.segments.push({ type: 'tool', toolCallId: toolCall.id });
+              currentTextSegmentIndex = -1;
+            }
+            scrollToBottom();
+          }
+        },
+        onToolResult: (result) => {
+          const message = aiStore.messages.find(m => m.id === assistantMessage.id);
+          if (message && message.toolCalls) {
+            const toolCall = message.toolCalls.find(tc => tc.id === result.id);
+            if (toolCall) {
+              toolCall.status = result.success ? 'success' : 'error';
+              toolCall.result = {
+                success: result.success,
+                message: result.message,
+                error: result.error,
+                data: result.data
+              };
+              if (result.success && ['create_file', 'create_folder', 'edit_file', 'delete_file'].includes(toolCall.name)) {
+                skillsStore.loadSkills();
+                const filePath = toolCall.params?.path || result.data?.path;
+                if (filePath) skillsStore.highlightFile(filePath);
+              }
+            }
+            scrollToBottom();
+          }
+        },
+        onDone: () => {
+          const message = aiStore.messages.find(m => m.id === assistantMessage.id);
+          if (message) message.isStreaming = false;
+          currentStreamingMessageId.value = null;
+          streamController.value = null;
+          isLoading.value = false;
+          aiStore.saveCurrentConversationMessages();
+          skillsStore.loadSkills();
+        },
+        onError: (error: string) => {
+          const message = aiStore.messages.find(m => m.id === assistantMessage.id);
+          if (message) {
+            message.isStreaming = false;
+            if (!message.content) message.content = `Error: ${error}`;
+            else message.content += `\n\nError: ${error}`;
+          }
+          currentStreamingMessageId.value = null;
+          streamController.value = null;
+          isLoading.value = false;
+          showToast(error, 'error');
+        }
+      },
+      aiStore.permissions,
+      workspacePath.value
+    );
+  } catch (error: any) {
+    console.error('AI Error:', error);
+    aiStore.addMessage({
+      role: 'assistant',
+      content: `Error: ${error.message || t('ai.unknownError')}`
+    });
+    isLoading.value = false;
+    showToast(error.message || t('ai.unknownError'), 'error');
+  }
+  
+  await nextTick();
+  scrollToBottom();
+}
 </script>
 
 <style lang="scss" scoped>
@@ -621,6 +826,13 @@ watch(() => props.initialMessage, (message) => {
   border-bottom: 1px solid var(--border);
   max-height: 300px;
   overflow-y: auto;
+}
+
+.loading-indicator-fixed {
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  background-color: var(--card);
+  flex-shrink: 0;
 }
 
 .panel-body {

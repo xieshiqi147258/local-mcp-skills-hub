@@ -37,6 +37,7 @@ declare module 'vue' {
     AppSidebar: typeof import('./components/common/AppSidebar.vue')['default']
     AppStatusbar: typeof import('./components/common/AppStatusbar.vue')['default']
     AppTitlebar: typeof import('./components/common/AppTitlebar.vue')['default']
+    ASwitch: typeof import('@arco-design/web-vue')['Switch']
     FolderTreeItem: typeof import('./components/FolderTreeItem.vue')['default']
     PromptEditor: typeof import('./components/settings/PromptEditor.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

@@ -31,18 +31,6 @@
         </svg>
       </button>
     </div>
-    
-    <!-- Input footer with character count and hints -->
-    <div class="input-footer">
-      <span class="char-count" :class="{ warning: charCount > maxChars * 0.9 }">
-        {{ charCount }}
-      </span>
-      <span class="input-hint">
-        <kbd>{{ sendShortcut }}</kbd> {{ t('aiEmptyState.sendHint') }}
-        <span class="separator">•</span>
-        <kbd>Shift+Enter</kbd> {{ t('aiInputArea.newLine') || '换行' }}
-      </span>
-    </div>
   </div>
 </template>
 
@@ -88,14 +76,8 @@ const isFocused = ref(false);
 const inputText = ref(props.modelValue);
 
 // Computed
-const charCount = computed(() => inputText.value.length);
-
 const canSend = computed(() => {
   return inputText.value.trim().length > 0 && !props.disabled && !props.isLoading;
-});
-
-const sendShortcut = computed(() => {
-  return props.sendOnEnter ? 'Enter' : 'Ctrl+Enter';
 });
 
 // Watch for external model changes
@@ -303,52 +285,6 @@ defineExpose({
   }
   to {
     transform: rotate(360deg);
-  }
-}
-
-.input-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: var(--space-2);
-  font-size: 11px;
-  color: var(--muted-foreground);
-}
-
-.char-count {
-  font-family: var(--font-mono);
-  
-  &.warning {
-    color: var(--warning, #F59E0B);
-  }
-}
-
-.input-hint {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-
-  kbd {
-    display: inline-block;
-    padding: 1px 4px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    background-color: var(--muted);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    box-shadow: 0 1px 0 var(--border);
-  }
-
-  .separator {
-    margin: 0 var(--space-1);
-    opacity: 0.5;
-  }
-}
-
-// Responsive
-@media (max-width: 400px) {
-  .input-hint {
-    display: none;
   }
 }
 
